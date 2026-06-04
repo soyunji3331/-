@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>성향 유형 검사</title>
+  <style>
+    :root {
+      --bg: #f7f5ef;
+      --card: #fffaf0;
+      --ink: #2f3440;
+      --muted: #737986;
+      --line: #e5ded0;
+      --green: #2ca36e;
+      --purple: #835a9a;
+      --accent: #3c6e71;
+      --danger: #b74a4a;
+      --shadow: 0 16px 40px rgba(31, 37, 50, .10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #fffdf7 0, var(--bg) 58%);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    .wrap {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      padding: 32px 18px 60px;
+    }
+
+    header {
+      text-align: center;
+      margin: 18px 0 28px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.65);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 14px 0 8px;
+      font-size: clamp(30px, 6vw, 52px);
+      letter-spacing: -0.06em;
+    }
+
+    .lead {
+      margin: 0 auto;
+      max-width: 680px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .progressShell {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      padding: 10px 0 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .progressText {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .progressBar {
+      height: 10px;
+      background: #eee7da;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progressFill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--purple));
+      transition: width .25s ease;
+    }
+
+    form {
+      display: grid;
+      gap: 16px;
+    }
+
+    .sectionTitle {
+      margin: 28px 0 2px;
+      font-size: 20px;
+      letter-spacing: -0.04em;
+    }
+
+    .question {
+      background: rgba(255,250,240,.88);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 24px;
+      padding: 22px;
+    }
+
+    .qTop {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .qNo {
+      flex: 0 0 auto;
+      min-width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: white;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .qText {
+      margin: 2px 0 0;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .scale {
+      display: grid;
+      grid-template-columns: 1fr repeat(5, 54px) 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .scaleLabel {
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .scaleLabel.left { text-align: right; color: var(--purple); }
+    .scaleLabel.right { text-align: left; color: var(--green); }
+
+    .choice input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .bubble {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
+      user-select: none;
+    }
+
+    .bubble.v1, .bubble.v2 { border-color: var(--purple); }
+    .bubble.v3 { border-color: #a8adb7; }
+    .bubble.v4, .bubble.v5 { border-color: var(--green); }
+
+    .bubble.v1, .bubble.v5 { width: 58px; height: 58px; }
+    .bubble.v2, .bubble.v4 { width: 52px; height: 52px; }
+
+    .choice input:checked + .bubble {
+      transform: scale(1.08);
+      color: white;
+    }
+
+    .choice input:checked + .bubble.v1,
+    .choice input:checked + .bubble.v2 { background: var(--purple); }
+    .choice input:checked + .bubble.v3 { background: #8e95a3; }
+    .choice input:checked + .bubble.v4,
+    .choice input:checked + .bubble.v5 { background: var(--green); }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 15px 22px;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    .primary {
+      background: var(--ink);
+      color: #fff;
+      min-width: 190px;
+    }
+
+    .secondary {
+      background: #e9e2d4;
+      color: var(--ink);
+    }
+
+    .message {
+      text-align: center;
+      margin: 12px 0 0;
+      min-height: 24px;
+      color: var(--danger);
+      font-weight: 800;
+    }
+
+    .result {
+      display: none;
+      margin-top: 30px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 30px;
+      padding: 30px;
+    }
+
+    .result.show { display: block; }
+
+    .typeCode {
+      font-size: clamp(54px, 15vw, 110px);
+      line-height: .9;
+      font-weight: 1000;
+      letter-spacing: -0.08em;
+      margin: 0 0 10px;
+      background: linear-gradient(90deg, var(--purple), var(--green));
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .character {
+      margin: 0 0 18px;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .pillRow {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 18px 0 20px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: #fffaf0;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    .scoreGrid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .scoreCard {
+      background: #f8f4eb;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .scoreCard b {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .scoreCard span {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .tiny {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 720px) {
+      .question { padding: 18px 14px; border-radius: 20px; }
+      .qText { font-size: 18px; }
+      .scale {
+        grid-template-columns: repeat(5, 1fr);
+        row-gap: 12px;
+      }
+      .scaleLabel {
+        grid-column: span 5;
+        text-align: center !important;
+      }
+      .scaleLabel.left { order: 7; }
+      .scaleLabel.right { order: -1; }
+      .bubble, .bubble.v1, .bubble.v2, .bubble.v4, .bubble.v5 {
+        width: 44px;
+        height: 44px;
+      }
+      .scoreGrid { grid-template-columns: 1fr; }
+      .result { padding: 24px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="badge">15문항 성향 유형 검사</div>
+      <h1>나는 어떤 인물 유형일까?</h1>
+      <p class="lead">각 문항을 읽고 1점부터 5점까지 선택해 주세요. 모든 문항에 답하면 나의 유형 코드가 표시됩니다.</p>
+    </header>
+
+    <div class="progressShell">
+      <div class="progressText">
+        <span id="answeredText">0 / 15 완료</span>
+        <span id="percentText">0%</span>
+      </div>
+      <div class="progressBar"><div class="progressFill" id="progressFill"></div></div>
+    </div>
+
+    <form id="quiz"></form>
+
+    <div class="actions">
+      <button class="primary" type="button" id="submitBtn">결과 보기</button>
+      <button class="secondary" type="button" id="resetBtn">다시 하기</button>
+    </div>
+    <div class="message" id="message"></div>
+
+    <section class="result" id="result" aria-live="polite">
+      <p class="typeCode" id="typeCode">AOC</p>
+      <p class="character" id="typeName">AOC형</p>
+      <p class="tiny">※ 결과에는 인물 이름과 점수가 표시되지 않습니다.</p>
+    </section>
+  </main>
+
+  <script>
+    const questions = [
+      { axis: "CR", text: "모두가 같은 의견이어도 내 생각이 다르면 말하는 편이다." },
+      { axis: "AS", text: "나는 내 이익이 줄어들더라도 가까운 사람이 힘들면 도와주는 편이다." },
+      { axis: "OP", text: "일이 예상과 다르게 흘러가도 아직 방법이 있다고 생각한다." },
+      { axis: "AS", text: "내가 가진 정보나 기회를 혼자만 갖기보다 주변 사람과 나누는 편이다." },
+      { axis: "CR", text: "납득되지 않는 규칙이나 지시는 그냥 따르기보다 이유를 확인하려 한다." },
+      { axis: "OP", text: "새로운 일을 시작할 때 실패보다 잘될 가능성을 먼저 생각한다." },
+      { axis: "CR", text: "권위 있는 사람이 정한 일이라도 이상하다고 느끼면 문제를 제기할 수 있다." },
+      { axis: "AS", text: "누군가 부탁했을 때, 조금 불편해져도 가능한 한 들어주려 한다." },
+      { axis: "OP", text: "문제가 생겨도 결국 해결 방법을 찾을 수 있다고 생각한다." },
+      { axis: "CR", text: "단체 분위기보다 내 기준과 판단을 더 중요하게 여기는 편이다." },
+      { axis: "AS", text: "단체에서 손해 보는 역할이 필요하다면 내가 맡을 수 있다." },
+      { axis: "OP", text: "결과가 나오기 전에는 안 좋은 결과보다 좋은 결과를 기대하는 편이다." },
+      { axis: "AS", text: "중요한 선택을 할 때 나에게 좋은 결과보다 모두에게 좋은 결과를 더 먼저 생각한다." },
+      { axis: "CR", text: "'원래 이렇게 해왔어'라는 말을 들으면 왜 그래야 하는지 먼저 따져보는 편이다." },
+      { axis: "OP", text: "실패하거나 실수해도 다음에는 더 잘할 수 있다고 믿는다." }
+    ];
+
+
+    const quiz = document.getElementById("quiz");
+    const result = document.getElementById("result");
+    const message = document.getElementById("message");
+    const progressFill = document.getElementById("progressFill");
+    const answeredText = document.getElementById("answeredText");
+    const percentText = document.getElementById("percentText");
+
+    function renderQuiz() {
+      questions.forEach((q, index) => {
+        const card = document.createElement("article");
+        card.className = "question";
+        card.innerHTML = `
+          <div class="qTop">
+            <div class="qNo">${index + 1}</div>
+            <p class="qText">${q.text}</p>
+          </div>
+          <div class="scale" role="radiogroup" aria-label="${index + 1}번 문항 점수 선택">
+            <div class="scaleLabel left">전혀 그렇지 않다</div>
+            ${[1,2,3,4,5].map(v => `
+              <label class="choice">
+                <input type="radio" name="q${index}" value="${v}" />
+                <span class="bubble v${v}">${v}</span>
+              </label>
+            `).join("")}
+            <div class="scaleLabel right">매우 그렇다</div>
+          </div>
+        `;
+        quiz.appendChild(card);
+      });
+    }
+
+    function getAnswers() {
+      return questions.map((_, i) => {
+        const checked = document.querySelector(`input[name="q${i}"]:checked`);
+        return checked ? Number(checked.value) : null;
+      });
+    }
+
+    function updateProgress() {
+      const answers = getAnswers();
+      const answered = answers.filter(v => v !== null).length;
+      const percent = Math.round((answered / questions.length) * 100);
+      answeredText.textContent = `${answered} / ${questions.length} 완료`;
+      percentText.textContent = `${percent}%`;
+      progressFill.style.width = `${percent}%`;
+    }
+
+    function calcResult() {
+      const answers = getAnswers();
+      const missingIndex = answers.findIndex(v => v === null);
+      if (missingIndex !== -1) {
+        message.textContent = `${missingIndex + 1}번 문항을 선택해 주세요.`;
+        result.classList.remove("show");
+        document.querySelector(`input[name="q${missingIndex}"]`)?.closest(".question")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+
+      message.textContent = "";
+
+      const scores = { AS: 0, OP: 0, CR: 0 };
+      answers.forEach((value, index) => {
+        scores[questions[index].axis] += value;
+      });
+
+      const first = scores.AS >= 16 ? "A" : "S";
+      const second = scores.OP >= 16 ? "O" : "P";
+      const third = scores.CR >= 16 ? "R" : "C";
+      const code = first + second + third;
+
+      document.getElementById("typeCode").textContent = code;
+      document.getElementById("typeName").textContent = `${code}형`;
+      result.classList.add("show");
+      result.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function resetQuiz() {
+      document.querySelectorAll("input[type='radio']").forEach(input => input.checked = false);
+      result.classList.remove("show");
+      message.textContent = "";
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    renderQuiz();
+    quiz.addEventListener("change", updateProgress);
+    document.getElementById("submitBtn").addEventListener("click", calcResult);
+    document.getElementById("resetBtn").addEventListener("click", resetQuiz);
+    updateProgress();
+  </script>
+</body>
+</html>
